@@ -2,7 +2,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, StyleSheet } from "react-native";
 import { useTheme } from "react-native-paper";
 
-export default function HomeScreen() {
+export default function ProfileScreen() {
   const theme = useTheme();
 
   return (
@@ -16,7 +16,7 @@ export default function HomeScreen() {
           color: theme.colors.primary,
         }}
       >
-        Home
+        Profile
       </Text>
     </SafeAreaView>
   );

@@ -1,14 +1,24 @@
+import { app } from "@/firebase/firebaseInit";
 import { auth } from "@/firebase/firebaseInit";
 import { Credential } from "@/model/type";
 import * as SecureStore from "expo-secure-store";
-import { signInWithEmailAndPassword, UserCredential } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  deleteUser,
+  sendEmailVerification,
+  signInWithEmailAndPassword,
+  UserCredential,
+  signOut,
+} from "firebase/auth";
 import React, { createContext, useState } from "react";
+import { doc, getFirestore, setDoc } from "firebase/firestore";
+import { Usuario } from "@/model/Usuario";
 
 export const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }: any) => {
   const [userAuth, setUserAuth] = useState<UserCredential | null>(null);
-
+  const firestore = getFirestore(app);
   /*
     Cache criptografado do usuário
   */
@@ -38,6 +48,37 @@ export const AuthProvider = ({ children }: any) => {
     }
   }
 
+  async function signUp(usuario: Usuario): Promise<string> {
+    try {
+      if (usuario.email && usuario.senha) {
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          usuario.email,
+          usuario.senha
+        );
+        if (userCredential) {
+          await sendEmailVerification(userCredential.user);
+        }
+        //A senha não deve ir para o Firestore
+        const usuarioFirestore = {
+          email: usuario.email,
+          nome: usuario.nome,
+          urlFoto: usuario.urlFoto,
+        };
+        await setDoc(
+          doc(firestore, "usuarios", userCredential.user.uid),
+          usuarioFirestore
+        );
+      } else {
+        return "Email e senha são obrigatórios.";
+      }
+      return "ok";
+    } catch (error: any) {
+      console.error("Erro ao cadastrar", error.code, error.message);
+      return launchServerMessageErro(error);
+    }
+  }
+
   async function signIn(credencial: Credential): Promise<string> {
     try {
       let userCredential = await signInWithEmailAndPassword(
@@ -45,6 +86,9 @@ export const AuthProvider = ({ children }: any) => {
         credencial.email,
         credencial.senha
       );
+      if (!userCredential.user.emailVerified) {
+        return "Você precisa verificar seu email para continuar.";
+      }
       setUserAuth(userCredential); // Adjusted to store the entire userCredential object
       armazenaCredencialnaCache(credencial);
       console.log("Atenticou", userCredential.user);
@@ -52,6 +96,13 @@ export const AuthProvider = ({ children }: any) => {
     } catch (error: any) {
       console.error("Erro ao autenticar", error.code, error.message);
       return launchServerMessageErro(error);
+    }
+  }
+
+  async function delAccount(): Promise<void> {
+    console.log("deletando conta");
+    if (userAuth?.user) {
+      await deleteUser(userAuth.user);
     }
   }
 
@@ -75,9 +126,26 @@ export const AuthProvider = ({ children }: any) => {
     }
   }
 
+  async function sair(): Promise<string> {
+    try {
+      await signOut(auth);
+      return "ok";
+    } catch (error: any) {
+      console.error(error.code, error.message);
+      return launchServerMessageErro(error);
+    }
+  }
+
   return (
     <AuthContext.Provider
-      value={{ signIn, recuperaCredencialdaCache, userAuth }}
+      value={{
+        signIn,
+        recuperaCredencialdaCache,
+        userAuth,
+        signUp,
+        delAccount,
+        sair,
+      }}
     >
       {children}
     </AuthContext.Provider>

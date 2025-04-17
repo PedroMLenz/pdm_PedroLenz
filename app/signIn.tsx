@@ -17,6 +17,7 @@ import {
 import * as yup from "yup";
 
 const requiredMessage = "Campo obrigatório";
+const theme = useTheme();
 
 const schema = yup
   .object()
@@ -74,8 +75,12 @@ export default function Home() {
     <SafeAreaView
       style={{ ...styles.container, backgroundColor: theme.colors.background }}
     >
-      <ScrollView>
+      <ScrollView contentContainerStyle={styles.scrollView}>
         <>
+          <Image
+            style={styles.image}
+            source={require("../assets/images/logo.png")}
+          />
           <Controller
             control={control}
             render={({ field: { onChange, onBlur, value } }) => (
@@ -133,7 +138,7 @@ export default function Home() {
               color: theme.colors.tertiary,
             }}
             variant="labelMedium"
-            onPress={() => alert("Ir para tela Recuperar senha")}
+            onPress={() => router.push("/recuperarSenha")}
           >
             Esqueceu sua senha?
           </Text>
@@ -150,7 +155,7 @@ export default function Home() {
             <Text
               style={{ ...styles.textCadastro, color: theme.colors.tertiary }}
               variant="labelMedium"
-              onPress={() => alert("Ir para tela Cadastro")}
+              onPress={() => router.push("../signUp")}
             >
               {" "}
               Cadastre-se.
@@ -158,14 +163,35 @@ export default function Home() {
           </View>
         </>
       </ScrollView>
-      <Dialog visible={dialogVisivel} onDismiss={() => setDialogVisivel(false)}>
-        <Dialog.Icon icon="alert-circle-outline" size={60} />
-        <Dialog.Title style={styles.textDialog}>Erro</Dialog.Title>
+      <Dialog
+        visible={dialogVisivel}
+        onDismiss={() => setDialogVisivel(false)}
+        style={{
+          backgroundColor: theme.dark ? "#051B31" : "#F1F1F1",
+        }}
+      >
+        <Dialog.Icon icon="alert-circle-outline" size={60} color="#246BFD" />
+        <Dialog.Title
+          style={{ ...styles.textDialog, color: theme.colors.primary }}
+        >
+          Erro
+        </Dialog.Title>
         <Dialog.Content>
-          <Text style={styles.textDialog} variant="bodyLarge">
+          <Text
+            style={{ ...styles.textDialog, color: theme.colors.primary }}
+            variant="bodyLarge"
+          >
             {mensagemDialog}
           </Text>
         </Dialog.Content>
+        <Dialog.Actions>
+          <Button
+            onPress={() => setDialogVisivel(false)}
+            textColor={theme.colors.primary}
+          >
+            OK
+          </Button>
+        </Dialog.Actions>
       </Dialog>
     </SafeAreaView>
   );
@@ -176,6 +202,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+  },
+  scrollView: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   image: {
     alignSelf: "center",
@@ -200,6 +231,7 @@ const styles = StyleSheet.create({
   },
   textDialog: {
     textAlign: "center",
+    color: theme.colors.onBackground, // Use theme color
   },
   divCadastro: {
     marginTop: 20,
@@ -209,13 +241,16 @@ const styles = StyleSheet.create({
   },
   textCadastro: {
     textAlign: "center",
+    color: theme.colors.tertiary, // Use theme color
   },
   textEsqueceuSenha: {
     alignSelf: "center",
     marginTop: 20,
+    color: theme.colors.tertiary, // Use theme color
   },
   textError: {
     width: 350,
     alignSelf: "center",
+    color: theme.colors.error, // Use theme color
   },
 });

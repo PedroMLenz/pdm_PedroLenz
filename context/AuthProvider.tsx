@@ -128,7 +128,8 @@ export const AuthProvider = ({ children }: any) => {
 
   async function sair(): Promise<string> {
     try {
-      await signOut(auth);
+      await signOut(auth); // Faz o logout no Firebase
+      await SecureStore.deleteItemAsync("credencial"); // Remove as credenciais do cache seguro
       return "ok";
     } catch (error: any) {
       console.error(error.code, error.message);
